@@ -1,0 +1,62 @@
+﻿@model TextBoxModel
+
+<div class="textBoxWithClearButtonWrapper">
+	<input name="@Model.Name" type="text" class="search-box textBoxWithClearButton" placeholder="@Model.PlaceHolder" value="@Model.Value" />
+	<a href="#" class="close-icon textBoxClearButton" onclick="clearTextBoxWithClearButton();"></a>
+</div>
+
+<style>
+	.search-box, .close-icon, .textBoxWithClearButtonWrapper {
+		position: relative;
+	}
+
+	.textBoxWithClearButtonWrapper {
+		width: 100%;
+		margin: auto;
+		padding-top: 1px;
+	}
+
+	.search-box {
+		width: 100%;
+		border: 1px solid #212529;
+		outline: 0;
+		border-radius: 7px;
+		padding-left: 25px;
+		padding-top: 5px;
+		padding-bottom: 5px;
+	}
+
+		.search-box:focus {
+			box-shadow: 0 0 1px 3px #dee2e6;
+		}
+
+	.close-icon {
+		background-color: transparent;
+		display: inline-block;
+		vertical-align: middle;
+		outline: 0;
+		cursor: pointer;
+		margin-top: -88px;
+		margin-left: 3px;
+	}
+
+		.close-icon:after {
+			content: "X";
+			display: block;
+			width: 16px;
+			height: 16px;
+			position: absolute;
+			z-index: 1;
+			text-align: center;
+			color: #6c757d;
+			font-weight: normal;
+			font-size: 16px;
+			cursor: pointer;
+		}
+</style>
+
+<script>
+	function clearTextBoxWithClearButton() {
+		document.getElementsByClassName("textBoxWithClearButton")[0].value = "";
+	}
+</script>

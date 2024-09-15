@@ -1,0 +1,15 @@
+﻿@model ViewErrorModel
+
+@{
+    string title = "Error!";
+    string message = "An error occurred while processing your request!";
+    if (Model is not null)
+    {
+        title = Model.Title;
+        message = Model.Message;
+    }
+    ViewData["Title"] = title;
+}
+
+<h1 class="text-danger">@ViewData["Title"]</h1>
+<h2 class="text-danger">@message</h2>

@@ -1,0 +1,18 @@
+﻿<script>
+    $(function () {
+        $(".menulink").click(function (event) {
+            event.preventDefault();
+            localStorage.setItem("menulinktext", $(this).text());
+            window.location.href = $(this).attr("href");
+        });
+
+        // Bootstrap 5 Tooltips:
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        $('[data-bs-toggle="tooltip"]').on('click', function () {
+            $(this).tooltip('hide');
+        });
+    });
+</script>

@@ -1,0 +1,29 @@
+﻿@using N4Core.Services.Models
+
+@model PageModel
+
+@{
+    var recordsPerPageCounts = new SelectList(Model.RecordsPerPageCounts ?? new List<string>());
+    var pageNumbers = new SelectList(Model.PageNumbers);
+}
+
+<div class="col-2">
+    <select asp-for="RecordsPerPageCount" class="form-select recordsperpagecount" asp-items="recordsPerPageCounts" onchange="recordsPerPageCountChange();"></select>
+</div>
+<div class="col-2">
+    <div class="input-group">
+        <select asp-for="PageNumber" class="form-select pagenumber" asp-items="pageNumbers" onchange="pageNumberChange();"></select>
+        <span class="input-group-text">@(" / " + pageNumbers.Count())</span>
+    </div>
+</div>
+
+<script>
+    function pageNumberChange() {
+        document.getElementById("form").submit();
+    }
+
+    function recordsPerPageCountChange() {
+        document.getElementsByClassName("pagenumber")[0].value = "1";
+        document.getElementById("form").submit();
+    }
+</script>

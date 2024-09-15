@@ -1,0 +1,44 @@
+﻿@page
+
+@using N4Core.Culture
+
+@model LoginModel
+
+@{
+    ViewData["Title"] = Model.Input.Language == Languages.English ? "Login" : "Giriş";
+}
+
+<div class="row justify-content-center">
+    <div class="col-5">
+        <h1>@ViewData["Title"]</h1>
+        <section>
+            <form id="account" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.UserName" class="form-control" autocomplete="username" aria-required="true" />
+                    @Html.DisplayNameFor(model => model.Input.UserName, Model.Input.Language)
+                    @Html.ValidationMessageFor(model => model.Input.UserName, Model.Input.Language)
+                </div>
+                <div class="form-floating mb-3 input-group">
+                    <input asp-for="Input.Password" class="form-control password" autocomplete="current-password" aria-required="true" />
+                    @Html.DisplayNameFor(model => model.Input.Password, Model.Input.Language)
+                    <a href="#" class="input-group-text" onclick="showHidePassword();" title="@(Model.Input.Language == Languages.English ? "Show / Hide Password" : "Şifre Göster / Gizle")">
+                        <i class="bi bi-eye" style="font-size:x-large;"></i>
+                    </a>
+                    @Html.ValidationMessageFor(model => model.Input.Password, Model.Input.Language)
+                </div>
+                <div class="checkbox mb-3">
+                    <input class="form-check-input" asp-for="Input.RememberMe" />
+                    <label class="form-label">@Html.DisplayNameFor(m => m.Input.RememberMe, Model.Input.Language)</label>
+                </div>
+                <div>
+                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-info">@(Model.Input.Language == Languages.English ? "Login" : "Giriş")</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_PasswordScript" />
+}

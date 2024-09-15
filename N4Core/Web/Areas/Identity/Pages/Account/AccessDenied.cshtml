@@ -1,0 +1,23 @@
+﻿@page
+
+@using N4Core.Cookie.Utils.Bases
+@using N4Core.Culture
+@using N4Core.Culture.Utils.Bases
+
+@model AccessDeniedModel
+
+@inject CultureUtilBase cultureUtil
+@inject CookieUtilBase cookieUtil
+@{
+    var cookie = cookieUtil.Get("lang");
+    var language = cultureUtil.GetLanguage(cookie);
+}
+
+@{
+    ViewData["Title"] = language == Languages.English ? "Access denied" : "Erişim reddedildi";
+}
+
+<header>
+    <h1 class="text-danger">@ViewData["Title"]</h1>
+    <p class="text-danger">@(language == Languages.English ? "You do not have access to this resource." : "Bu kaynağa erişiminiz bulunmamaktadır.")</p>
+</header>

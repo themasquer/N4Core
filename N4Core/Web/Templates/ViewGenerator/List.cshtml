@@ -1,0 +1,470 @@
+﻿@inherits Microsoft.VisualStudio.Web.CodeGeneration.Templating.RazorTemplateBase
+@using Microsoft.VisualStudio.Web.CodeGeneration.EntityFrameworkCore
+@using System.Collections.Generic
+@using System.Linq
+@{
+    var viewEnumerable = GetEnumerableTypeExpression(Model.ViewDataTypeShortName);
+    viewEnumerable = viewEnumerable.Insert(viewEnumerable.Length - 1, "QueryModel");
+    var viewModel = "@model " + viewEnumerable;
+}
+@viewModel
+@{
+    if (Model.IsPartialView)
+    {
+    }
+    else if (Model.IsLayoutPageSelected)
+    {
+@:@@{
+    @:ViewModel viewModel = ViewBag.ViewModel as ViewModel;
+    @:ViewData["Title"] = @@viewModel?.ViewTexts.List;
+        if (!string.IsNullOrEmpty(Model.LayoutPageFile))
+        {
+    @:Layout = "@Model.LayoutPageFile";
+        }
+@:}
+@:
+@:<h3 class="text-light bg-primary p-2"><i class="bi bi-card-list"></i> <span id="menulinktitle">@@ViewData["Title"]</span></h3>
+@:
+    }
+    else
+    {
+@:@@{
+    @:Layout = null;
+@:}
+@:
+@:<!DOCTYPE html>
+@:
+@:<html>
+@:<head>
+    @:<meta name="viewport" content="width=device-width" />
+    @:<title>@@ViewData["Title"]</title>
+@:</head>
+@:<body>
+        //    PushIndent("    ");
+    }
+var openCurlyBraceLine = "{\n";
+var closeCurlyBraceLine = "}\n";
+var ifLine = "@if (Model != null && Model.Count() > 0)\n";
+@:@@if (viewModel is not null)
+@:{
+@:<form asp-action="@Model.ViewName" id="form" autocomplete="off">
+@:@@if (viewModel.PageOrderFilter)
+@:{
+    @:<partial name="_PageOrderFilter" model="viewModel" />
+@:}
+@:<div class="row">
+    @:<div class="col-9 ps-3 pt-1 pb-3">
+        <partial name="_Message" />
+    @:</div>
+    @:<div class="col-2 pt-1 pb-3">
+        @:<partial name="_ListView" model="viewModel" />
+    @:</div>
+    @:<div class="col-1 pt-1 pb-3 pe-4 text-end">
+    @:@@if (viewModel.ExportOperation)
+    @:{
+        @:<a asp-action="Export" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Export"><i class="bi bi-file-earmark-excel" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+    @:}
+    @:@@if (viewModel.Modal)
+    @:{
+        @:if (ViewContext.RouteData.Values["Area"] is null)
+        @:{
+        @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Controller"].ToString()/Create" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Create"><i class="bi bi-plus-square" style="font-size:larger;"></i></a>
+        @:}
+        @:else
+        @:{
+        @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Area"]/@@ViewContext.RouteData.Values["Controller"].ToString()/Create" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Create"><i class="bi bi-plus-square" style="font-size:larger;"></i></a>
+        @:}
+    @:}
+    @:else
+    @:{
+        @:<a asp-action="Create" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Create"><i class="bi bi-plus-square" style="font-size:larger;"></i></a>
+    @:}
+    @:</div>
+@:</div>
+@ifLine
+@openCurlyBraceLine
+    @:<div id="divwithscrollbar">
+    @:@@if (viewModel.ListCards is null || viewModel.ListCards == false)
+    @:{
+    @:<table class="table table-striped table-bordered">
+        @:<thead>
+            @:<tr>
+            Dictionary<string, IPropertyMetadata> propertyLookup1 = ((IModelMetadata)Model.ModelMetadata).Properties.ToDictionary(x => x.PropertyName, x => x);
+            Dictionary<string, INavigationMetadata> navigationLookup1 = ((IModelMetadata)Model.ModelMetadata).Navigations.ToDictionary(x => x.AssociationPropertyName, x => x);
+
+            foreach (var item in Model.ModelMetadata.ModelType.GetProperties())
+            {
+                if (propertyLookup1.TryGetValue(item.Name, out IPropertyMetadata property)
+                    && property.Scaffold && !property.IsForeignKey && !property.IsPrimaryKey)
+                {
+                    bool isFile = property.TypeName.Equals(typeof(byte[]).FullName);
+                    if (!isFile)
+                    {
+                        bool isDateTime = property.TypeName.Equals(typeof(DateTime).FullName) || property.TypeName.Equals(typeof(DateTime?).FullName);
+                        if (isDateTime)
+                        {
+                <th>
+                    <a href="#" class="orderexpressionlink">
+                        @@Html.DisplayNameFor(model => model.FirstOrDefault().@GetValueExpression(property), viewModel.Language)
+                    </a>
+                </th>
+                        }
+                        else
+                        {
+                            bool isDecimal = property.TypeName.Equals(typeof(decimal).FullName) || property.TypeName.Equals(typeof(decimal?).FullName)
+                                || property.TypeName.Equals(typeof(double).FullName) || property.TypeName.Equals(typeof(double?).FullName);
+                            if (isDecimal)
+                            {
+                <th>
+                    <a href="#" class="orderexpressionlink">
+                        @@Html.DisplayNameFor(model => model.FirstOrDefault().@GetValueExpression(property), viewModel.Language)
+                    </a>
+                </th>
+                            }
+                            else
+                            {
+                                bool isBoolean = property.TypeName.Equals(typeof(bool).FullName) || property.TypeName.Equals(typeof(bool?).FullName);
+                                if (isBoolean)
+                                {
+                                    bool isPropertyNameIsDeleted = property.PropertyName.Equals("IsDeleted");
+                                    if (!isPropertyNameIsDeleted)
+                                    {
+                <th>
+                    <a href="#" class="orderexpressionlink">
+                        @@Html.DisplayNameFor(model => model.FirstOrDefault().@GetValueExpression(property), viewModel.Language)
+                    </a>
+                </th>
+                                    }
+                                }
+                                else
+                                {
+                                    if (!property.PropertyName.Equals("FileContent") && !property.PropertyName.Equals("FilePath") && !property.PropertyName.Equals("Guid"))
+                                    {
+                                        if (!property.IsMultilineText)
+                                        {
+                <th>
+                    <a href="#" class="orderexpressionlink">
+                        @@Html.DisplayNameFor(model => model.FirstOrDefault().@GetValueExpression(property), viewModel.Language)
+                    </a>
+                </th>
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                <th>
+                    <a href="#" class="orderexpressionlink">
+                        @@Html.DisplayNameFor(model => model.FirstOrDefault().FileImgSrc, viewModel.Language)
+                    </a>
+                </th>
+                    }
+                }
+                else if (navigationLookup1.TryGetValue(item.Name, out INavigationMetadata navigation))
+                {
+                <th>
+                    <a href="#" class="orderexpressionlink">
+                        @@Html.DisplayNameFor(model => model.FirstOrDefault().@GetValueExpression(navigation), viewModel.Language)
+                    </a>
+                </th>
+                }
+            }
+                @:<th></th>
+            @:</tr>
+        @:</thead>
+        @:<tbody>
+		    @:@@foreach (var item in Model)
+            @:{
+				@:<tr>
+				foreach (var item in Model.ModelMetadata.ModelType.GetProperties())
+				{
+					if (propertyLookup1.TryGetValue(item.Name, out IPropertyMetadata property)
+						&& property.Scaffold && !property.IsForeignKey && !property.IsPrimaryKey)
+					{
+                        bool isFile = property.TypeName.Equals(typeof(byte[]).FullName);
+                        if (!isFile)
+                        {
+                            bool isDateTime = property.TypeName.Equals(typeof(DateTime).FullName) || property.TypeName.Equals(typeof(DateTime?).FullName);
+                            if (isDateTime)
+                            {
+                    <td>
+						@@Html.DisplayFor(modelItem => item.@GetValueExpression(property))
+					</td>
+                            }
+                            else
+                            {
+                                bool isDecimal = property.TypeName.Equals(typeof(decimal).FullName) || property.TypeName.Equals(typeof(decimal?).FullName)
+                                    || property.TypeName.Equals(typeof(double).FullName) || property.TypeName.Equals(typeof(double?).FullName);
+                                if (isDecimal)
+                                {
+                    <td>
+						@@Html.DisplayFor(modelItem => item.@GetValueExpression(property))
+					</td>
+                                }
+                                else
+                                {
+                                    bool isBoolean = property.TypeName.Equals(typeof(bool).FullName) || property.TypeName.Equals(typeof(bool?).FullName);
+                                    if (isBoolean)
+                                    {
+                                        bool isPropertyNameIsDeleted = property.PropertyName.Equals("IsDeleted");
+                                        if (!isPropertyNameIsDeleted)
+                                        {
+                    <td>
+						@@Html.DisplayFor(modelItem => item.@GetValueExpression(property))
+					</td>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (!property.PropertyName.Equals("FileContent") && !property.PropertyName.Equals("FilePath") && !property.PropertyName.Equals("Guid"))
+                                        {
+                                            if (!property.IsMultilineText)
+                                            {
+                    <td>
+						@@Html.DisplayFor(modelItem => item.@GetValueExpression(property))
+					</td>
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                    <td style="width:10%;">
+                    @{
+                        @:@@if (string.IsNullOrWhiteSpace(item.FileImgSrc))
+                        @:{
+                            @:<span><i class="bi bi-image" style="font-size:larger;"></i></span>
+                        @:}
+                        @:else
+                        @:{
+                            @:<img src="@@item.FileImgSrc" class="img-thumbnail" />
+                        @:}
+                    }
+                    </td>
+                        }
+					}
+					else if (navigationLookup1.TryGetValue(item.Name, out INavigationMetadata navigation))
+					{
+					<td>
+						@@Html.DisplayFor(modelItem => item.@GetValueExpression(navigation))
+					</td>
+					}
+				}
+				string pkName1 = GetPrimaryKeyName();
+				if (pkName1 != null)
+				{
+					@:<td style="text-align:center;width:11%;">
+                    @:@@if (viewModel.Modal)
+                    @:{
+                         @:if (ViewContext.RouteData.Values["Area"] is null)
+                         @:{
+                         @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Controller"].ToString()/Details/@@item.Id" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Details"><i class="bi bi-info-circle" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                         @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Controller"].ToString()/Edit/@@item.Id" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Edit"><i class="bi bi-pencil-square" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                         @:}
+                         @:else
+                         @:{
+                         @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Area"]/@@ViewContext.RouteData.Values["Controller"].ToString()/Details/@@item.Id" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Details"><i class="bi bi-info-circle" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                         @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Area"]/@@ViewContext.RouteData.Values["Controller"].ToString()/Edit/@@item.Id" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Edit"><i class="bi bi-pencil-square" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                         @:}
+                        @:<a href="#" class="deleteItem" onclick="deleteItem(@@item.@pkName1);" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Delete"><i class="bi bi-trash" style="font-size:larger;"></i></a>
+                    @:}
+                    @:else
+                    @:{
+                        @:<a asp-area="@@ViewContext.RouteData.Values["Area"]" asp-controller="@@ViewContext.RouteData.Values["Controller"]" asp-action="Details" asp-route-id="@@item.@pkName1" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Details"><i class="bi bi-info-circle" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                        @:<a asp-area="@@ViewContext.RouteData.Values["Area"]" asp-controller="@@ViewContext.RouteData.Values["Controller"]" asp-action="Edit" asp-route-id="@@item.@pkName1" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Edit"><i class="bi bi-pencil-square" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                        @:<a asp-area="@@ViewContext.RouteData.Values["Area"]" asp-controller="@@ViewContext.RouteData.Values["Controller"]" asp-action="Delete" asp-route-id="@@item.@pkName1" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Delete"><i class="bi bi-trash" style="font-size:larger;"></i></a>
+                    @:}
+                    @:</td>
+				}
+				@:</tr>
+		    @:}
+        @:</tbody>
+    @:</table>
+    @:}
+    @:else
+    @:{
+    @:<div class="row row-cols-1 row-cols-md-5 g-4">
+        @:@@foreach (var item in Model)
+        @:{
+        @:<div class="col pt-1 pb-1 ps-3 pe-3">
+            @:<div class="card h-100" style="width:99%;">
+                @:<div class="card-body pt-1 ps-2">
+                    bool isItemFile = false, isItemDateTime = false, isItemDecimal = false, isItemBoolean = false, isItemText = false, isItemPropertyNameIsDeleted = false;
+                    foreach (var item in Model.ModelMetadata.ModelType.GetProperties())
+                    {
+                        isItemFile = false;
+                        isItemDateTime = false;
+                        isItemDecimal = false;
+                        isItemBoolean = false;
+                        isItemPropertyNameIsDeleted = false;
+                        isItemText = false;
+                        if (propertyLookup1.TryGetValue(item.Name, out IPropertyMetadata property)
+                            && property.Scaffold && !property.IsForeignKey && !property.IsPrimaryKey)
+                        {
+                            isItemFile = property.TypeName.Equals(typeof(byte[]).FullName);
+                            if (!isItemFile)
+                            {
+                                isItemDateTime = property.TypeName.Equals(typeof(DateTime).FullName) || property.TypeName.Equals(typeof(DateTime?).FullName);
+                                if (!isItemDateTime)
+                                {
+                                    isItemDecimal = property.TypeName.Equals(typeof(decimal).FullName) || property.TypeName.Equals(typeof(decimal?).FullName)
+                                        || property.TypeName.Equals(typeof(double).FullName) || property.TypeName.Equals(typeof(double?).FullName);
+                                    if (!isItemDecimal)
+                                    {
+                                        isItemBoolean = property.TypeName.Equals(typeof(bool).FullName) || property.TypeName.Equals(typeof(bool?).FullName);
+                                        if (isItemBoolean)
+                                        {
+                                            isItemPropertyNameIsDeleted = property.PropertyName.Equals("IsDeleted");
+                                        }
+                                        else
+                                        {
+                                            isItemText = !property.IsMultilineText && !property.PropertyName.Equals("FileContent") && !property.PropertyName.Equals("FilePath") && !property.PropertyName.Equals("Guid");
+                                        }
+                                    }
+                                }
+                            }
+                            if (isItemFile)
+                            {
+                    @:@@if (!string.IsNullOrWhiteSpace(item.FileImgSrc))
+                    @:{
+                    @:<div>
+                        @:<img src="@@item.FileImgSrc" class="card-img-top" /><br />
+                    @:</div>
+                    @:}
+                            }
+                            if (isItemText)
+                            {
+                    @:<div>
+                        @:<a href="#" class="orderexpressionlink card-text" style="text-decoration: none;">
+                            @:@@Html.DisplayNameFor(model => model.FirstOrDefault().@GetValueExpression(property), viewModel.Language)
+                        @:</a>:&nbsp;
+                        @:@@Html.DisplayFor(modelItem => item.@GetValueExpression(property))<br />
+                    @:</div>
+                            }
+                            if ((isItemDateTime || isItemDecimal || isItemBoolean) && !isItemPropertyNameIsDeleted)
+                            {
+                    @:<div>
+                        @:<a href="#" class="orderexpressionlink card-text" style="text-decoration: none;">
+                            @:@@Html.DisplayNameFor(model => model.FirstOrDefault().@GetValueExpression(property), viewModel.Language)
+                        @:</a>:&nbsp;
+                        @:@@Html.DisplayFor(modelItem => item.@GetValueExpression(property))<br />
+                    @:</div>
+                            }
+                        }
+                        else if (navigationLookup1.TryGetValue(item.Name, out INavigationMetadata navigation))
+                        {
+                    @:<div>
+                        @:<a href="#" class="orderexpressionlink card-text" style="text-decoration: none;">
+                            @:@@Html.DisplayNameFor(model => model.FirstOrDefault().@GetValueExpression(navigation), viewModel.Language)
+                        @:</a>:&nbsp;
+                        @:@@Html.DisplayFor(modelItem => item.@GetValueExpression(navigation))<br />
+                    @:</div>
+                        }
+                    }
+                @:</div>
+                @:<div class="card-footer">
+                    pkName1 = GetPrimaryKeyName();
+                    if (pkName1 != null)
+                    {
+	                    @:@@if (viewModel.Modal)
+                        @:{
+                            @:if (ViewContext.RouteData.Values["Area"] is null)
+                            @:{
+                    @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Controller"].ToString()/Details/@@item.Id" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Details"><i class="bi bi-info-circle" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                    @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Controller"].ToString()/Edit/@@item.Id" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Edit"><i class="bi bi-pencil-square" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                            @:}
+                            @:else
+                            @:{
+                    @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Area"]/@@ViewContext.RouteData.Values["Controller"].ToString()/Details/@@item.Id" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Details"><i class="bi bi-info-circle" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                    @:<a href="#" class="showModalLink" data-url="/@@ViewContext.RouteData.Values["Area"]/@@ViewContext.RouteData.Values["Controller"].ToString()/Edit/@@item.Id" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Edit"><i class="bi bi-pencil-square" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                            @:}
+                    @:<a href="#" class="deleteItem" onclick="deleteItem(@@item.@pkName1);" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Delete"><i class="bi bi-trash" style="font-size:larger;"></i></a>
+                        @:}
+                        @:else
+                        @:{
+                    @:<a asp-action="Details" asp-route-id="@@item.@pkName1" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Details"><i class="bi bi-info-circle" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                    @:<a asp-action="Edit" asp-route-id="@@item.@pkName1" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Edit"><i class="bi bi-pencil-square" style="font-size:larger;"></i></a>@@:&nbsp;&nbsp;&nbsp;&nbsp;
+                    @:<a asp-action="Delete" asp-route-id="@@item.@pkName1" data-bs-toggle="tooltip" title="@@viewModel.ViewTexts.Delete"><i class="bi bi-trash" style="font-size:larger;"></i></a>
+                        @:}
+                    }
+                @:</div>
+            @:</div>
+        @:</div>
+        @:}
+    @:</div>
+    @:}
+    @:</div>
+@closeCurlyBraceLine
+@:</form>
+@:}
+@:
+@:@@section Scripts {
+    @:@@if (viewModel is not null)
+    @:{
+        @:if (viewModel.Modal)
+        @:{
+            @:<partial name="_Modal" model="viewModel.ViewTexts" />
+            @:<partial name="_AlertifyJS" model="viewModel.ViewTexts" />
+        @:}
+        @:if (viewModel.PageOrderFilter)
+        @:{
+            @:<partial name="_PageOrderFilterScript" model="viewModel.ViewTexts" />
+        @:}
+        @:else
+        @:{
+            <script>
+                $(function() {
+                    $("div#divwithscrollbar").css("height", "500px");
+                    $("div#divwithscrollbar").css("border-style", "solid");
+                    $("div#divwithscrollbar").css("border-width", "1px");
+                    $("div#divwithscrollbar").css("overflow-y", "auto");
+                    $("div#divwithscrollbar").css("overflow-x", "hidden");
+                });
+            </script>
+        @:}
+    @:}
+    <script>
+        $(function () {
+            var menuLinkText = localStorage.getItem("menulinktext");
+            if (menuLinkText != null) {
+                $("#menulinktitle").text(menuLinkText);
+                $(document).prop("title", menuLinkText);
+            }
+        });
+    </script>
+@:}
+    if(!Model.IsPartialView && !Model.IsLayoutPageSelected)
+    {
+        //ClearIndent();
+@:</body>
+@:</html>
+    }
+}
+@functions
+{
+    string GetPrimaryKeyName()
+    {
+        return (Model.ModelMetadata.PrimaryKeys != null && Model.ModelMetadata.PrimaryKeys.Length == 1)
+        ? Model.ModelMetadata.PrimaryKeys[0].PropertyName
+        : null;
+    }
+
+    string GetValueExpression(IPropertyMetadata property)
+    {
+        return property.PropertyName;
+    }
+
+    string GetValueExpression(INavigationMetadata navigation)
+    {
+        return navigation.AssociationPropertyName;
+    }
+
+    string GetEnumerableTypeExpression(string typeName)
+    {
+        return "List<" + typeName + ">";
+    }
+}

@@ -1,0 +1,104 @@
+﻿@page
+
+@using N4Core.Culture
+
+@model RegisterModel
+@{
+    ViewData["Title"] = Model.Input.Language == Languages.English ? "Register" : "Kayıt";
+}
+
+<div class="row justify-content-center">
+    <div class="col-5">
+        <h1>@ViewData["Title"]</h1>
+        <partial name="_Required" />
+        <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.UserName" class="form-control" autocomplete="username" aria-required="true" />
+                @Html.DisplayNameFor(model => model.Input.UserName, Model.Input.Language)
+                @Html.ValidationMessageFor(model => model.Input.UserName, Model.Input.Language)
+            </div>
+            <div class="form-floating mb-3 input-group">
+                <input asp-for="Input.Password" class="form-control password" autocomplete="new-password" aria-required="true" />
+                @Html.DisplayNameFor(model => model.Input.Password, Model.Input.Language)
+                <a href="#" class="input-group-text" onclick="showHidePassword();" title="@(Model.Input.Language == Languages.English ? "Show / Hide Password" : "Şifre Göster / Gizle")">
+                    <i class="bi bi-eye" style="font-size:x-large;"></i>
+                </a>
+                @Html.ValidationMessageFor(model => model.Input.Password, Model.Input.Language)
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.ConfirmPassword" class="form-control password" autocomplete="new-password" aria-required="true" />
+                @Html.DisplayNameFor(model => model.Input.ConfirmPassword, Model.Input.Language)
+                @Html.ValidationMessageFor(model => model.Input.ConfirmPassword, Model.Input.Language)
+            </div>
+
+            @if (Model.Input.ShowEmail)
+            {
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email" class="form-control" autocomplete="username" />
+                    @Html.DisplayNameFor(model => model.Input.Email, Model.Input.Language)
+                    @Html.ValidationMessageFor(model => model.Input.Email, Model.Input.Language)
+                </div>
+            }
+
+            @if (Model.Input.Sections is not null && Model.Input.Sections.Any())
+            {
+                <div class="row mb-3">
+                    <select multiple asp-for="Input.SectionNames" class="form-select select2">
+                        @{
+                            bool sectionFound;
+                            foreach (var section in Model.Input.Sections)
+                            {
+                                sectionFound = false;
+                                foreach (var sectionName in Model.Input.SectionNames ?? new List<string>())
+                                {
+                                    if (section.SectionName == sectionName)
+                                    {
+                                        sectionFound = true;
+                                        break;
+                                    }
+                                }
+                                if (sectionFound)
+                                {
+                                    <option value="@(section.SectionName)" selected>@(section.SectionName)</option>
+                                }
+                                else
+                                {
+                                    <option value="@(section.SectionName)">@(section.SectionName)</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+            }
+            
+            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-info">@(Model.Input.Language == Languages.English ? "Register" : "Kayıt")</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_PasswordScript" />
+
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+    <script src="~/lib/select2/js/select2.min.js"></script>
+
+    <script>
+        $(function () {
+            var sections;
+            @{
+                if (Model.Input.Language == Languages.English)
+                {
+                    @:sections = "Sections";
+                }
+                else
+                {
+                    @:sections = "Gruplar";
+                }
+            }
+            $(".select2").select2({
+                placeholder: sections
+            });
+        });
+    </script>
+}

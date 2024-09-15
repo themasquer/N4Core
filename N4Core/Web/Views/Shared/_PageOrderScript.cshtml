@@ -1,0 +1,40 @@
+﻿@using N4Core.Culture
+
+@model PageOrderModel
+
+<script>
+    var orderExpression = '@Model.OrderExpression';
+    var recordsPerPageCount = '@Model.RecordsPerPageCount';
+    var pageNumber = '@Model.PageNumber';
+    $(function () {
+        $(document).on('change', '.pagenumber', function () {
+            $("#form").submit();
+        });
+        $(document).on('change', '.recordsperpagecount', function () {
+            $(".pagenumber").val("1");
+            $("#form").submit();
+        });
+        $(document).on('change', ".orderexpression", function () {
+            $("#form").submit();
+        });
+
+        var recordsPerPageCount;
+        var pageNumber;
+        var orderExpression;
+        @if (Model.Language == Languages.Türkçe)
+        {
+            @:recordsPerPageCount = "Sayı";
+            @:pageNumber = "Sayfa";
+            @:orderExpression = "Sıra";
+        }
+        else
+        {
+            @:recordsPerPageCount = "Count";
+            @:pageNumber = "Page";
+            @:orderExpression = "Order";
+        }
+        $(".recordsperpagecount").prepend('<option value="" disabled>' + recordsPerPageCount + '</option>');
+        $(".pagenumber").prepend('<option value="" disabled>' + pageNumber + '</option>');
+        $(".orderexpression").prepend('<option value="" disabled>' + orderExpression + '</option>');
+    });
+</script>

@@ -1,0 +1,86 @@
+﻿@using N4Core.Accounts.Models
+
+@model AccountLoginModel
+    
+@{
+    ViewModel viewModel = ViewBag.ViewModel as ViewModel;
+    ViewData["Title"] = @viewModel.ViewTexts.Login;
+}
+
+<div class="container">
+    @{
+        <h3 class="text-light bg-primary p-2"><i class="bi bi-box-arrow-in-right"></i> @ViewData["Title"]</h3>
+
+	string message;
+	string color;
+
+@if (ViewBag.Message != null)
+{
+	message = ViewBag.Message.ToString();
+	color = "success";
+	if (message.EndsWith("!"))
+	{
+		color = "danger";
+	}
+	<p class="text-@color">
+		@message
+	</p>
+}
+@if (TempData["Message"] != null)
+{
+	message = TempData["Message"].ToString();
+	color = "success";
+	if (message.EndsWith("!"))
+	{
+		color = "danger";
+	}
+	<p class="text-@color">
+		@message
+	</p>
+}
+        <hr />
+    }
+    <div class="row">
+        <div class="col-12">
+            <form asp-action="AccountLogin">
+		        @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="row mb-3">
+                    <displayname asp-for="UserName" asp-language="@viewModel.Language" class="col-2 col-form-label fw-bold"></displayname>
+				    <div class="col-10">
+					    <input asp-for="UserName" class="form-control" />
+					    <validation asp-for="UserName" asp-language="@viewModel.Language" class="text-danger"></validation>
+				    </div>
+                </div>
+                <div class="row mb-3">
+                    <displayname asp-for="Password" asp-language="@viewModel.Language" class="col-2 col-form-label fw-bold"></displayname>
+				    <div class="col-10">
+						<table style="width: 100%;">
+							<tr>
+								<td style="width: 95%;">
+									<input asp-for="Password" class="form-control password" type="password" />
+								</td>
+								<td class="text-end">
+									<a href="#" onclick="showHidePassword();" data-bs-toggle="tooltip" title="@viewModel.ViewTexts.ShowHidePassword">
+										<i class="bi bi-eye" style="font-size:x-large;"></i>
+									</a>
+								</td>
+							</tr>
+						</table>
+					    <validation asp-for="Password" asp-language="@viewModel.Language" class="text-danger"></validation>
+				    </div>
+                </div>
+				<input type="hidden" asp-for="ReturnUrl" />
+                <div class="row mb-3">
+                    <div class="offset-2 col-10">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-check-square"></i> @viewModel.ViewTexts.Login</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+	<partial name="_PasswordScript" />
+}

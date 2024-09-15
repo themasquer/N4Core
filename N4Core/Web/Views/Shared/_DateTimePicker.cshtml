@@ -1,0 +1,56 @@
+﻿@using N4Core.Culture
+
+@model ViewModel
+
+@* https://xdsoft.net/jqplugins/datetimepicker *@
+<link rel="stylesheet" href="~/lib/jquery-datetimepicker/jquery.datetimepicker.min.css" />
+<script src="~/lib/jquery-datetimepicker/jquery.datetimepicker.full.min.js"></script>
+
+<script>
+	$(function () {
+		@if (Model.ViewTexts.Language == Languages.Türkçe) 
+		{
+			@:$.datetimepicker.setLocale("tr");
+			@:$('.datetimepicker').datetimepicker({
+				@if (Model.TimePicker) 
+				{
+					@:timepicker: true,
+					@:format: 'd.m.Y H:i:s',
+				}
+				else
+				{
+					@:timepicker: false,
+					@:format: 'd.m.Y',
+				}
+				@:i18n: {
+					@:tr: {
+						@:months: [
+							@:'Ocak', 'Şubat', 'Mart', 'Nisan',
+							@:'Mayıs', 'Haziran', 'Temmuz', 'Ağustos',
+							@:'Eylül', 'Ekim', 'Kasım', 'Aralık'
+						@:],
+						@:dayOfWeek: [
+							@:"Paz", "Pzt", "Sal", "Çar",
+							@:"Per", "Cum", "Cmt"
+						@:]
+					@:}
+				@:}
+			@:});
+		}
+		else
+		{
+			@:$('.datetimepicker').datetimepicker({
+				@if (Model.TimePicker)
+				{
+					@:timepicker: true,
+					@:format: 'm/d/Y H:i:s'
+				}
+				else
+				{
+					@:timepicker: false,
+					@:format: 'm/d/Y'
+				}
+			@:});
+		}
+	});
+</script>

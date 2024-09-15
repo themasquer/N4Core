@@ -1,0 +1,33 @@
+﻿@using N4Core.Services.Models
+
+@model PageOrderModel
+
+@{
+    var recordsPerPageCounts = new SelectList(Model.RecordsPerPageCounts ?? new List<string>());
+    var pageNumbers = new SelectList(Model.PageNumbers);
+    var orderExpressions = new SelectList(Model.OrderExpressions, "Value", "Text");
+}
+
+@if (orderExpressions.Any())
+{
+    <div class="col-2 order">
+        <select asp-for="OrderExpression" class="form-select orderexpression" asp-items="orderExpressions"></select>
+    </div>
+    <div class="col-1 order pt-1 ps-4 pt-2">
+        <div class="form-check">
+            <input asp-for="OrderDirectionDescending" class="form-check-input orderdirectiondescending" id="orderdirectiondescending">
+            <label class="form-check-label" for="orderdirectiondescending" id="orderdirectiondescendinglabel">
+                ...
+            </label>
+        </div>
+    </div>
+}
+<div class="col-2">
+    <select asp-for="RecordsPerPageCount" class="form-select recordsperpagecount" asp-items="recordsPerPageCounts" onchange="recordsPerPageCountChange();"></select>
+</div>
+<div class="col-2">
+    <div class="input-group">
+        <select asp-for="PageNumber" class="form-select pagenumber" asp-items="pageNumbers" onchange="pageNumberChange();"></select>
+        <span class="input-group-text">@(" / " + pageNumbers.Count())</span>
+    </div>
+</div>

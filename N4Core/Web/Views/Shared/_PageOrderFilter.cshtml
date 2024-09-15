@@ -1,0 +1,15 @@
+﻿@using N4Core.Services.Models
+
+@model ViewModel
+
+<hr />
+<div class="row" style="padding-top: 15px;padding-bottom: 15px;">
+    <div class="col-5">
+        <div class="input-group">
+            <input asp-for="Filter" class="form-control filter" placeholder="..." id="filter" />
+            <button type="submit" class="btn btn-success search" data-bs-toggle="tooltip" title="@Model.ViewTexts.Search" id="search"><i class="bi bi-search"></i></button>
+            <a class="btn btn-outline-success clear" data-bs-toggle="tooltip" title="@Model.ViewTexts.Clear" id="clear"><i class="bi bi-arrow-clockwise"></i></a>
+        </div>
+    </div>
+    <partial name="_PageOrder" model="Model as PageOrderModel" />
+</div>

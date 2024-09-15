@@ -1,0 +1,11 @@
+﻿@using N4Core.Cookie.Utils.Bases
+@using N4Core.Culture.Utils.Bases
+
+@inject CultureUtilBase cultureUtil
+@inject CookieUtilBase cookieUtil
+@{
+    var cookie = cookieUtil.Get("lang");
+    var language = cultureUtil.GetLanguage(cookie);
+}
+
+<p>@(language == N4Core.Culture.Languages.English ? "Fields marked with * are required." : "* ile işaretlenmiş alanlar zorunludur.")</p>

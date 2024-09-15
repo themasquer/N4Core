@@ -1,0 +1,512 @@
+@inherits Microsoft.VisualStudio.Web.CodeGeneration.Templating.RazorTemplateBase
+@{
+if (@Model.NullableEnabled)
+{
+@:#nullable disable
+}
+}
+@using System.Collections.Generic;
+@using System.Linq;
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+@* @{
+    if (Model.RequiredNamespaces is not null)
+    {
+        var requiredNamespaces = Model.RequiredNamespaces as HashSet<string>;
+        if (requiredNamespaces is not null && requiredNamespaces.Count > 0)
+        {
+            var requiredNamespace = requiredNamespaces.First().Split('.')[0];
+            string[] namespaces = { "Services", "Models" };
+            for (int i = 0; i < namespaces.Length; i++)
+            {
+@:using @(requiredNamespace + "." + namespaces[i] + ";")
+            }
+        }
+    }
+} *@
+using N4Core.Services.Bases;
+using N4Core.Controllers.Bases;
+using N4Core.Culture.Utils.Bases;
+using N4Core.Cookie.Utils.Bases;
+using N4Core.Session.Utils.Bases;
+using N4Core.Services.Models;
+using N4Core.Views.Models;
+using N4Core.Culture;
+
+namespace @Model.ControllerNamespace
+{
+@{
+    string routePrefix;
+    if (String.IsNullOrEmpty(Model.AreaName))
+    {
+        routePrefix = Model.ControllerRootName;
+    }
+    else
+    {
+        routePrefix = Model.AreaName + "/" + Model.ControllerRootName;
+    }
+    var modelProperties = new List<string>();
+    foreach (var property in Model.ModelMetadata.Properties)
+    {
+        if (property.Scaffold)
+        {
+            modelProperties.Add(property.PropertyName);
+        }
+    }
+    var bindString = string.Join(",", modelProperties);
+    var contextTypeName = Model.ContextTypeName;
+    var entitySetName = Model.ModelMetadata.EntitySetName;
+    var entitySetVar = Model.EntitySetVariable ??
+        (String.IsNullOrEmpty(entitySetName)
+            ? entitySetName
+            : (entitySetName.Substring(0, length: 1).ToLowerInvariant() + entitySetName.Substring(1)));
+    var primaryKeyName = Model.ModelMetadata.PrimaryKeys[0].PropertyName;
+    var primaryKeyShortTypeName = Model.ModelMetadata.PrimaryKeys[0].ShortTypeName;
+    var primaryKeyType = Model.ModelMetadata.PrimaryKeys[0].TypeName;
+    var primaryKeyNullableTypeName = GetNullableTypeName(primaryKeyType, primaryKeyShortTypeName);
+    var lambdaVar = Model.ModelVariable[0];
+    var relatedProperties = new Dictionary<string, dynamic>();
+    foreach (var nav in Model.ModelMetadata.Navigations)
+    {
+        relatedProperties.Add(nav.AssociationPropertyName, nav);
+    }
+
+    var inlineIncludes = "";
+    foreach (var property in relatedProperties.Values)
+    {
+        inlineIncludes += string.Format("{0}                .Include({1} => {1}.{2})", Environment.NewLine, lambdaVar, property.AssociationPropertyName);
+    }
+
+    if (!string.IsNullOrEmpty(Model.AreaName))
+    {
+    @:@string.Format("[Area(\"{0}\")]", Model.AreaName)
+    }
+
+    var serviceAbstractClassType = "ServiceBase<" + Model.ModelTypeName + ", " + Model.ModelTypeName + "QueryModel, " + Model.ModelTypeName + "CommandModel>";
+    var serviceAbstractClassName = Model.ModelVariable + "Service";
+    var constructorLine = "public " + Model.ControllerName + "(" + serviceAbstractClassType + " " + serviceAbstractClassName;
+    var relatedServiceAbstractClassTypeDeclarations = "";
+    var constructorParameters = "";
+    var constructorAssignments = "";
+    foreach (var relatedProperty in relatedProperties.Keys)
+    {
+        relatedServiceAbstractClassTypeDeclarations += "private readonly ServiceBase<" + relatedProperty + ", " + relatedProperty + "QueryModel, " + relatedProperty + "CommandModel> _" + relatedProperty.Substring(0, 1).ToLower() + relatedProperty.Substring(1) + "Service;\n";
+        constructorParameters += "\n\t\t\t, " + "ServiceBase<" + relatedProperty + ", " + relatedProperty + "QueryModel, " + relatedProperty + "CommandModel> " + relatedProperty.Substring(0, 1).ToLower() + relatedProperty.Substring(1) + "Service";
+        constructorLine += constructorParameters;
+        constructorAssignments += "_" + relatedProperty.Substring(0, 1).ToLower() + relatedProperty.Substring(1) + "Service = " + relatedProperty.Substring(0, 1).ToLower() + relatedProperty.Substring(1) + "Service;\n";
+    }
+    if (relatedProperties.Keys.Any())
+        relatedServiceAbstractClassTypeDeclarations += "\t\t";
+    relatedServiceAbstractClassTypeDeclarations += "/* Replace many to many with the service base name in the current project for using many to many relational services. */\n";
+    relatedServiceAbstractClassTypeDeclarations += "\t\t//private readonly ServiceBase<Entity, QueryModel, CommandModel> _manyToManyService;";
+    constructorLine += "\n\t\t\t/*, ServiceBase<Entity, QueryModel, CommandModel> manyToManyService */";
+    constructorLine += "\n\t\t\t, CultureUtilBase cultureUtil, CookieUtilBase cookieUtil, SessionUtilBase sessionUtil)";
+    constructorLine += " : base(cultureUtil, cookieUtil, sessionUtil)";
+    if (relatedProperties.Keys.Any())
+        constructorAssignments += "\t\t\t";
+    constructorAssignments += "//_manyToManyService = manyToManyService;";
+    var declareListLine = "List<" + Model.ModelTypeName + "QueryModel> " + Model.ModelVariable + "List;";
+    var listLine = Model.ModelVariable + "List = await " + ("_" + serviceAbstractClassName) + ".GetList();";
+    var pageOrderFilterListLine = Model.ModelVariable + "List = await " + ("_" + serviceAbstractClassName) + ".GetList(pageOrderFilterModel);";
+    var serviceConfigLine = "_" + serviceAbstractClassName + ".Set(config => { config.ListCards = pageOrderFilterModel.ListCards ?? config.ListCards; });";
+    var itemLine = Model.ModelTypeName + "QueryModel " + Model.ModelVariable + " = await " + ("_" + serviceAbstractClassName) + ".GetItem(id);";
+    var commandItemLine = Model.ModelTypeName + "CommandModel " + Model.ModelVariable + " = await " + ("_" + serviceAbstractClassName) + ".GetCommandItem(id);";
+    var viewListLine = "return View(" + Model.ModelVariable + "List);";
+    var viewItemLine = "return View(" + Model.ModelVariable + ");";
+    var partialViewItemLine = "return PartialView(" + Model.ModelVariable + ");";
+    var addLine = "var response = await " + ("_" + serviceAbstractClassName) + ".Create(" + Model.ModelVariable + ");";
+    var updateLine = "var response = await " + ("_" + serviceAbstractClassName) + ".Update(" + Model.ModelVariable + ");";
+    var deleteLine = "var response = await " + ("_" + serviceAbstractClassName) + ".Delete(id);";
+    var ifResultSuccessfulLine = "if (response.IsSuccessful)";
+    var openCurlyBraceLine = "{";
+    var tempDataLine = "base.SetTempData(message); // End message in service with '.' for success, '!' for danger Bootstrap CSS classes to be used in the View";
+    var redirectToIndexLine = "return RedirectToAction(nameof(Index), new { pagesession = true });";
+    var redirectToDetailsLine = "return RedirectToAction(nameof(Details), new { id = response.Id });";
+    var redirectToDetailsByIdLine = "return RedirectToAction(nameof(Details), new { id = id });";
+    var closeCurlyBraceLine = "}";
+    var modelStateLine = "ModelState.AddModelError(\"\", response.Message);";
+    var listCountLine = "ViewBag.Message = _" + serviceAbstractClassName + ".ViewModel.Message;";
+    var itemNotFoundLine = "ViewBag.Message = _" + serviceAbstractClassName + ".Messages.RecordNotFound;";
+    var commandModelType = Model.ModelTypeName + "CommandModel";
+    var viewModelLine = "ViewBag.ViewModel = _" + serviceAbstractClassName + ".ViewModel;";
+    var report = "DateTime.Now.ToString(\"yyyyMMdd_HHmmss\") + \"_\" + " + "(_" + serviceAbstractClassName + ".Messages as MessagesModel).Report";
+    var apiControllerName = Model.ControllerRootName + "ApiController";
+    var apiRoutePrefix = Model.ControllerRootName + "Api";
+    var apiConstructorLine = "public " + apiControllerName + "(" + serviceAbstractClassType + " " + serviceAbstractClassName + ")";
+    var apiListLine = "List<" + Model.ModelTypeName + "QueryModel> " + Model.ModelVariable + "List = await " + ("_" + serviceAbstractClassName) + ".GetList();";
+    var apiOkListLine = "return Ok(" + Model.ModelVariable + "List);";
+    var apiItemLine = Model.ModelTypeName + "QueryModel " + Model.ModelVariable + " = await " + ("_" + serviceAbstractClassName) + ".GetItem(id);";
+    var apiOkItemLine = "return Ok(" + Model.ModelVariable + ");";
+    var apiOkResponseLine = "return Ok(response);";
+}
+    #region MVC
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [Authorize]
+    public class @Model.ControllerName : MvcController
+    {
+        private readonly @serviceAbstractClassType @("_" + serviceAbstractClassName);
+        @relatedServiceAbstractClassTypeDeclarations
+
+        @constructorLine
+        {
+            @("_" + serviceAbstractClassName) = @serviceAbstractClassName;
+            @constructorAssignments
+            @("_" + serviceAbstractClassName).Set(config => // Configurations
+            {
+                config.PageOrderFilter = true;
+                config.UsePageSession = true; // should be set to true for MVC, false for WebApi
+                config.RecordsPerPageCounts = null; // should be set to null for using default values
+                config.ListCards = false; // false for showing list, true for showing cards, null for not showing list view
+                config.Modal = true;
+                config.FileOperations = false;
+                config.ExportOperation = false;
+                config.TimePicker = false;
+                config.FileExtensions = ".jpg, .jpeg, .png";
+                config.FileLengthInMegaBytes = 1;
+                config.IsExcelLicenseCommercial = false;
+                config.NoEntityTracking = true;
+                config.SetMapperProfiles(new @(Model.ModelTypeName + "Profile()")); // specify Profile object initializations as parameters for managing mapping
+                config.SetDirectories(); // specify folders under the wwwroot as parameters for managing images from disk
+            });
+        }
+
+        protected override async Task SetViewData(string message = null)
+        {
+            await base.SetViewData(message); // End message in service with '.' for success, '!' for danger Bootstrap CSS classes to be used in the View
+@{
+    foreach (var property in relatedProperties.Values)
+    {
+            @:ViewData["@(property.ForeignKeyPropertyNames[0])"] = new SelectList(await _@(relatedProperties.FirstOrDefault(rp => rp.Value == property).Key.Substring(0, 1).ToLower() + relatedProperties.FirstOrDefault(rp => rp.Value == property).Key.Substring(1))Service.GetList(), "Id", "Name");
+    }
+            @://ViewData["ManyToManyIds"] = new MultiSelectList(await _manyToManyService.GetList(), "Id", "Name");
+}
+        }
+
+        protected override void SetTempData(string message)
+        {
+            @tempDataLine
+        }
+
+        // GET: @routePrefix
+        [AllowAnonymous]
+        public async Task<IActionResult> Index(PageOrderFilterModel pageOrderFilterModel)
+        {
+            @declareListLine
+            @serviceConfigLine
+            if (@("_" + serviceAbstractClassName + ".Config.PageOrderFilter"))
+                @pageOrderFilterListLine
+            else
+                @listLine
+            @listCountLine
+            @viewModelLine
+            @viewListLine
+        }
+
+        // GET: @routePrefix/Details/5
+        [AllowAnonymous]
+        public async Task<IActionResult> Details(@primaryKeyShortTypeName id)
+        {
+            @itemLine
+            if (@Model.ModelVariable is null)
+            {
+                @itemNotFoundLine
+            }
+            @viewModelLine
+            if (@("_" + serviceAbstractClassName + ".ViewModel.Modal"))
+                @partialViewItemLine
+            @viewItemLine
+        }
+
+        // GET: @routePrefix/Create
+        [AllowAnonymous]
+        public async Task<IActionResult> Create()
+        {
+            await SetViewData();
+            @viewModelLine
+            if (@("_" + serviceAbstractClassName + ".ViewModel.Modal"))
+                return PartialView();
+            return View();
+        }
+
+        // POST: @routePrefix/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> Create(@commandModelType @Model.ModelVariable)
+        {
+            @viewModelLine
+            if (ModelState.IsValid)
+            {
+@{
+    if (!string.IsNullOrEmpty(primaryKeyType) && IsGuid(primaryKeyType))
+    {
+                @:@(Model.ModelVariable).@primaryKeyName = Guid.NewGuid();
+    }
+}
+                @addLine
+                @ifResultSuccessfulLine
+                @openCurlyBraceLine
+                    SetTempData(response.Message);
+                    if (!@("_" + serviceAbstractClassName + ".ViewModel.Modal"))
+                        @redirectToDetailsLine
+                    return Ok("?s=true");
+                @closeCurlyBraceLine
+                @modelStateLine
+            }
+            await SetViewData();
+            if (@("_" + serviceAbstractClassName + ".ViewModel.Modal"))
+                return PartialView(@Model.ModelVariable);
+            return View(@Model.ModelVariable);
+        }
+
+        // GET: @routePrefix/Edit/5
+        [AllowAnonymous]
+        public async Task<IActionResult> Edit(@primaryKeyShortTypeName id)
+        {
+            @commandItemLine
+            if (@Model.ModelVariable is null)
+            {
+                @itemNotFoundLine
+            }
+            else
+            {
+                await SetViewData();
+            }
+            @viewModelLine
+            if (@("_" + serviceAbstractClassName + ".ViewModel.Modal"))
+                return PartialView(@Model.ModelVariable);
+            return View(@Model.ModelVariable);
+        }
+
+        // POST: @routePrefix/Edit
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> Edit(@commandModelType @Model.ModelVariable)
+        {
+            @viewModelLine
+            if (ModelState.IsValid)
+            {
+                @updateLine
+                @ifResultSuccessfulLine
+                @openCurlyBraceLine
+                    SetTempData(response.Message);
+                    if (!@("_" + serviceAbstractClassName + ".ViewModel.Modal"))
+                        @redirectToDetailsLine
+                    return Ok("?s=true");
+                @closeCurlyBraceLine
+                @modelStateLine
+            }
+            await SetViewData();
+            if (@("_" + serviceAbstractClassName + ".ViewModel.Modal"))
+                return PartialView(@Model.ModelVariable);
+            return View(@Model.ModelVariable);
+        }
+
+        // GET: @routePrefix/Delete/5
+        [AllowAnonymous]
+        public async Task<IActionResult> Delete(@primaryKeyShortTypeName id)
+        {
+            @viewModelLine
+            if (@("_" + serviceAbstractClassName + ".Config.Modal"))
+            {
+                // Delete Operation Using AlertifyJS
+                @deleteLine
+                SetTempData(response.Message);
+                @redirectToIndexLine
+            }
+            else
+            {
+                // Delete Operation Using View
+                @itemLine
+                if (@Model.ModelVariable is null)
+                {
+                    @itemNotFoundLine
+                }
+                return View(@Model.ModelVariable);
+            }
+        }
+
+        // Delete Operation Using View
+        // POST: @routePrefix/Delete
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> DeleteConfirmed(@primaryKeyShortTypeName id)
+        {
+            @deleteLine
+            SetTempData(response.Message);
+            @redirectToIndexLine
+        }
+
+        #region File Operations
+        [AllowAnonymous]
+        public async Task<IActionResult> DeleteFile(int id)
+        {
+            if (@("_" + serviceAbstractClassName + ".Config.FileOperations"))
+            {
+                await @("_" + serviceAbstractClassName).DeleteFile(id);
+                @viewModelLine
+                if (@("_" + serviceAbstractClassName + ".ViewModel.Modal"))
+                    @redirectToIndexLine
+                @redirectToDetailsByIdLine
+            }
+            else
+            {
+                return View("Error", new ViewErrorModel((@("_" + serviceAbstractClassName).Messages as MessagesModel).FileOperationsNotConfigured));
+            }
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> DownloadFile(int id)
+        {
+            if (@("_" + serviceAbstractClassName + ".Config.FileOperations"))
+            {
+                var file = await @("_" + serviceAbstractClassName).DownloadFile(id);
+                return File(file.FileStream, file.FileContentType, file.FileName);
+            }
+            else
+            {
+                return View("Error", new ViewErrorModel((@("_" + serviceAbstractClassName).Messages as MessagesModel).FileOperationsNotConfigured));
+            }
+        }
+        #endregion
+
+        #region Export Operation
+        [AllowAnonymous]
+        public async Task Export()
+        {
+            if (@("_" + serviceAbstractClassName + ".Config.ExportOperation"))
+            {
+                await @("_" + serviceAbstractClassName).ExportToExcel(@report);
+            }
+        }
+        #endregion
+	}
+    #endregion
+
+    #region API
+    [Route("[controller]")]
+    [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public class @apiControllerName : ControllerBase
+    {
+        private readonly @serviceAbstractClassType @("_" + serviceAbstractClassName);
+
+        @apiConstructorLine
+        {
+            @("_" + serviceAbstractClassName) = @serviceAbstractClassName;
+            @("_" + serviceAbstractClassName).Set(config => // Configurations
+            {
+                config.Language = Languages.English;
+                config.FileOperations = false;
+                config.FileExtensions = ".jpg, .jpeg, .png";
+                config.FileLengthInMegaBytes = 1;
+                config.NoEntityTracking = false;
+                config.SetMapperProfiles(new @(Model.ModelTypeName + "Profile()")); // specify Profile object initializations as parameters for managing mapping
+                config.SetDirectories(); // specify folders under the wwwroot as parameters for managing images from disk
+            });
+        }
+
+        // GET: @apiRoutePrefix
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Get()
+        {
+            @apiListLine
+            @apiOkListLine
+        }
+
+        // GET: @apiRoutePrefix/5
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Get(@primaryKeyShortTypeName id)
+        {
+            @apiItemLine
+		    @apiOkItemLine
+        }
+
+	    // POST: @apiRoutePrefix
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Post([FromBody] @commandModelType @Model.ModelVariable)
+        {
+            if (ModelState.IsValid)
+            {
+                @addLine
+                @apiOkResponseLine
+            }
+            return BadRequest(ModelState.Update(@("_" + serviceAbstractClassName).Language));
+        }
+
+        // PUT: @apiRoutePrefix
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut]
+        [AllowAnonymous]
+        public async Task<IActionResult> Put([FromBody] @commandModelType @Model.ModelVariable)
+        {
+            if (ModelState.IsValid)
+            {
+                @updateLine
+                @apiOkResponseLine
+            }
+            return BadRequest(ModelState.Update(@("_" + serviceAbstractClassName).Language));
+        }
+
+        // DELETE: @apiRoutePrefix/5
+        [HttpDelete("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Delete(@primaryKeyShortTypeName id)
+        {
+            @deleteLine
+            @apiOkResponseLine
+        }
+
+        #region File Operations
+        // DELETE: @apiRoutePrefix/DeleteFile/5
+        [HttpDelete("[action]/{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> DeleteFile(@primaryKeyShortTypeName id)
+        {
+            var response = await _productService.DeleteFile(id);
+            return Ok(response);
+        }
+        #endregion
+    }
+    #endregion
+}
+@functions
+{
+    // This function converts the primary key short type name to its nullable equivalent when possible. This is required to make
+    // sure that an HTTP 400 error is thrown when the user tries to access the edit, delete, or details action with null values.
+    string GetNullableTypeName(string typeName, string shortTypeName)
+    {
+        // The exceptions are caught because if for any reason the type is user defined, then the short type name will be used.
+        // In that case the user will receive a server error if null is passed to the edit, delete, or details actions.
+        Type primaryKeyType = null;
+        try
+        {
+            primaryKeyType = Type.GetType(typeName);
+        }
+        catch
+        {
+        }
+        if (primaryKeyType is not null && (!Microsoft.VisualStudio.Web.CodeGeneration.Templating.TypeUtilities.IsNullable(primaryKeyType) || IsGuid(typeName)))
+        {
+            return shortTypeName + "?";
+        }
+        return shortTypeName;
+    }
+
+    bool IsGuid(string typeName) {
+        return String.Equals("System.Guid", typeName, StringComparison.OrdinalIgnoreCase);
+    }
+}

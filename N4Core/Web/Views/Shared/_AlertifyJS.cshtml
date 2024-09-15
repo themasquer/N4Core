@@ -1,0 +1,40 @@
+﻿@model ViewTextsModel
+
+@* https://alertifyjs.com/ *@
+
+<link href="~/lib/AlertifyJS/css/alertify.min.css" rel="stylesheet" />
+<link href="~/lib/AlertifyJS/css/themes/default.min.css" rel="stylesheet" />
+<script src="~/lib/AlertifyJS/alertify.min.js"></script>
+
+<script>
+    var title = '@Model.Warning';
+    var message = '@Model.DeleteQuestion';
+    var yes = '@Model.DeleteYes';
+    var no = '@Model.DeleteNo';
+
+    function deleteItem(itemId) {
+        alertify.confirm(title,
+            message,
+            function () { // OK
+            @if (ViewContext.RouteData.Values["Area"] is not null)
+            {
+                @:window.location.href = '/@ViewContext.RouteData.Values["Area"]/@ViewContext.RouteData.Values["Controller"].ToString()/Delete/' + itemId;
+            }
+            else
+            {
+                @:window.location.href = '/@ViewContext.RouteData.Values["Controller"].ToString()/Delete/' + itemId;
+            }
+            },
+            function () { // Cancel
+            @if (ViewContext.RouteData.Values["Area"] is not null)
+            {
+                @:window.location.href = '/@ViewContext.RouteData.Values["Area"]/@ViewContext.RouteData.Values["Controller"].ToString()/Index?s=true';
+            }
+            else
+            {
+                @:window.location.href = '/@ViewContext.RouteData.Values["Controller"].ToString()/Index?s=true';
+            }
+            }
+        ).set('labels', { ok: yes, cancel: no });
+    }
+</script>

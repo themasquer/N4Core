@@ -1,0 +1,22 @@
+﻿@model ViewModel
+
+@if (Model.ListCards.HasValue)
+{
+    <div class="col-12">
+        <div class="input-group">
+            <span class="input-group-text">@Model.ViewTexts.ListView</span>
+            <select name="listcards" onchange="this.form.submit();" class="form-select">
+                @if (Model.ListCards.Value)
+                {
+                    <option value="false">@Model.ViewTexts.ViewList</option>
+                    <option value="true" selected>@Model.ViewTexts.ViewCards</option>
+                }
+                else
+                {
+                    <option value="false" selected>@Model.ViewTexts.ViewList</option>
+                    <option value="true">@Model.ViewTexts.ViewCards</option>
+                }
+            </select>
+        </div>
+    </div>
+}

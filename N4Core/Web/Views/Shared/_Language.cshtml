@@ -1,0 +1,14 @@
+﻿@using N4Core.Cookie.Utils.Bases
+@using N4Core.Culture
+@using N4Core.Types.Extensions
+
+@inject CookieUtilBase cookieUtil
+
+@{
+    var language = cookieUtil.Get("lang");
+    var languageSelectList = new Languages().ToSelectList(language);
+}
+
+<form asp-area="" asp-action="Index" asp-controller="LanguageMvc" asp-route-returnUrl="@Url.GetCurrentRoute(ViewContext)">
+    <select name="language" class="form-select" onchange="this.form.submit();" asp-items="languageSelectList"></select>
+</form>

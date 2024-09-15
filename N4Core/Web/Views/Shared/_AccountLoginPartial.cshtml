@@ -1,0 +1,44 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using N4Core.Accounts.Models
+@using N4Core.Culture
+
+@model AccountLoginPartialModel
+
+@inject AppSettingsBase appSettingsBase
+@{
+    var appSettings = appSettingsBase as AppSettings;
+}
+
+@{
+    string returnUrl = Url.GetCurrentRoute(ViewContext);
+}
+
+<ul class="navbar-nav">
+@if (User.Identity.IsAuthenticated)
+{
+    <li class="nav-item p-2">
+        <span class="text-info"><i class="bi bi-person"></i> @User.Identity.Name</span>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link text-info" asp-area="" asp-controller="Account" asp-action="AccountLogout" asp-route-returnUrl="@returnUrl"><i class="bi bi-box-arrow-left"></i> 
+            @(Model.Language == Languages.English ? "Logout" : "Çıkış")
+        </a>
+    </li>
+}
+else
+{
+    if (appSettings.ShowRegister)
+    {
+        <li class="nav-item">
+            <a class="nav-link text-info" asp-area="" asp-controller="Account" asp-action="AccountRegister" asp-route-returnUrl="@returnUrl"><i class="bi bi-person-add"></i> 
+                @(Model.Language == Languages.English ? "Register" : "Kayıt")
+            </a>
+        </li>
+    }
+    <li class="nav-item">
+        <a class="nav-link text-info" asp-area="" asp-controller="Account" asp-action="AccountLogin" asp-route-returnUrl="@returnUrl"><i class="bi bi-box-arrow-right"></i> 
+            @(Model.Language == Languages.English ? "Login" : "Giriş")
+        </a>
+    </li>
+}
+</ul>

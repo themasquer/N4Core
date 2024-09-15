@@ -1,0 +1,41 @@
+﻿@page
+
+@using N4Core.Cookie.Utils.Bases
+@using N4Core.Culture
+@using N4Core.Culture.Utils.Bases
+@using N4Core.Views.Extensions
+
+@model LogoutModel
+
+@inject CultureUtilBase cultureUtil
+@inject CookieUtilBase cookieUtil
+@{
+    var cookie = cookieUtil.Get("lang");
+    var language = cultureUtil.GetLanguage(cookie);
+}
+
+@{
+    ViewData["Title"] = language == Languages.English ? "Logout" : "Çıkış";
+}
+
+<header>
+    <div class="row justify-content-center">
+        <div class="col-5">
+            <h1>@ViewData["Title"]</h1>
+            @{
+                if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.GetHomeRoute()">
+                        <button class="w-100 btn btn-lg btn-info" onclick="this.form.submit();">
+                            @(language == Languages.English ? "Click here to Logout" : "Çıkış için buraya tıklayın")
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <p>@(language == Languages.English ? "You have successfully logged out of the application." : "Başarıyla çıkış yaptınız.")</p>
+                }
+            }
+        </div>
+    </div>
+</header>

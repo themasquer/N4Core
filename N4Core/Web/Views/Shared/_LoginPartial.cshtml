@@ -1,0 +1,49 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using N4Core.Cookie.Utils.Bases
+@using N4Core.Culture
+@using N4Core.Culture.Utils.Bases
+
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+@inject AppSettingsBase appSettingsBase
+@{
+    var appSettings = appSettingsBase as AppSettings;
+}
+
+@inject CultureUtilBase cultureUtil
+@inject CookieUtilBase cookieUtil
+@{
+    var cookie = cookieUtil.Get("lang");
+    var language = cultureUtil.GetLanguage(cookie);
+}
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item p-2">
+            <span class="text-info"><i class="bi bi-person"></i> @User.Identity?.Name</span>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-info" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.GetCurrentRoute(ViewContext)"><i class="bi bi-box-arrow-left"></i> 
+                @(language == Languages.English ? "Logout" : "Çıkış")
+            </a>
+        </li>
+    }
+    else
+    {
+        @if (appSettings.ShowRegister)
+        {
+            <li class="nav-item">
+                <a class="nav-link text-info" asp-area="Identity" asp-page="/Account/Register" asp-route-returnUrl="@Url.GetCurrentRoute(ViewContext)"><i class="bi bi-person-add"></i> 
+                    @(language == Languages.English ? "Register" : "Kayıt")
+                </a>
+            </li>
+        }
+        <li class="nav-item">
+            <a class="nav-link text-info" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@Url.GetCurrentRoute(ViewContext)"><i class="bi bi-box-arrow-right"></i> 
+                @(language == Languages.English ? "Login" : "Giriş")
+            </a>
+        </li>
+    }
+</ul>

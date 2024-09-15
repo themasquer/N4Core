@@ -1,0 +1,46 @@
+﻿@model TextAreaModel
+
+<textarea name="@Model.Name" class="form-control textAreaWithCharacterCounter" maxlength="@Model.MaxLength" rows="@Model.Rows" placeholder="@Model.PlaceHolder">@Model.Value</textarea>
+<i>Kalan karakter sayısı: <span>@Model.RemainingCharacterCount</span></i>
+
+<script>
+	/*
+	 * param textareaEl = textarea html element
+	 * param remainingEl = element that includes the remaining value, updates with each event fire (keyUp)
+	*/
+
+	var element;
+	var remainingEl;
+	var max;
+	var remainingChars;
+	var currCounter;
+	
+	var textarea = document.getElementsByClassName("textAreaWithCharacterCounter")[0];
+	var remaining = document.querySelector("i span");
+	this.element = textarea;
+	this.remainingEl = remaining;
+	this.max = this.element.getAttribute("maxlength");
+	this.remainingChars = this.max;
+	this.currCounter = this.element.value.length;
+	this.setEvents();
+
+	/* calculates the remaining characters
+	 * param event = event triggered from event listener
+	*/
+	function calc(event) {
+		this.remainingChars = this.element.value.length;
+		this.updateRemainingEl();
+	}
+
+	/* sets the events that will be attacked on the element
+	*/
+	function setEvents() {
+		this.element.addEventListener("keyup", (event) => this.calc(event));
+	}
+
+	/* updates the remainingEl markup with the current remaining char value
+	*/
+	function updateRemainingEl() {
+		this.remainingEl.textContent = this.max - this.remainingChars;
+	}
+</script>
