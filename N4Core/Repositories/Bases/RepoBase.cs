@@ -1,7 +1,6 @@
 ﻿#nullable disable
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using N4Core.Accounts.Utils.Bases;
 using N4Core.Contexts.Bases;
 using N4Core.Records.Bases;
@@ -117,17 +116,12 @@ namespace N4Core.Repositories.Bases
                             {
                                 entry.Property(ReflectionRecordModel.Guid).IsModified = false;
                             }
-                            if (UpdateChangesDetected(entry))
+                            if (ReflectionRecordModel.HasModifiedBy)
                             {
-                                if (ReflectionRecordModel.HasModifiedBy)
-                                {
-                                    entry.CurrentValues[ReflectionRecordModel.UpdateDate] = DateTime.Now;
-                                    entry.CurrentValues[ReflectionRecordModel.UpdatedBy] = _modifiedBy;
-                                }
-                            }
-                            else
-                            {
-                                entry.State = EntityState.Unchanged;
+                                entry.Property(ReflectionRecordModel.CreateDate).IsModified = false;
+                                entry.Property(ReflectionRecordModel.CreatedBy).IsModified = false;
+                                entry.CurrentValues[ReflectionRecordModel.UpdateDate] = DateTime.Now;
+                                entry.CurrentValues[ReflectionRecordModel.UpdatedBy] = _modifiedBy;
                             }
                             break;
                         case EntityState.Deleted:
@@ -140,14 +134,6 @@ namespace N4Core.Repositories.Bases
                     }
                 }
             }
-        }
-
-        protected virtual bool UpdateChangesDetected(EntityEntry<TEntity> entry)
-        {
-            return entry.Properties.Any(p => p.IsModified &&
-                ((p.CurrentValue is null && p.OriginalValue is not null) ||
-                (p.CurrentValue is not null && p.OriginalValue is null) ||
-                (p.CurrentValue is not null && p.OriginalValue is not null && !p.CurrentValue.Equals(p.OriginalValue))));
         }
 
         public void Dispose()
