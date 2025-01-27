@@ -41,7 +41,8 @@ namespace N4Core.Files.Configs
 			{ ".zip", "application/zip" },
 			{ ".7z", "application/zip" },
 			{ ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
-			{ ".mp4", "video/mp4" }
+			{ ".mp4", "video/mp4" },
+			{ ".pdf", "application/pdf" }
 		};
 
         public string AtagStyleNone { get; set; } = "style=\"color: black;text-decoration: none;font-family: Menlo,Monaco,Consolas,'Courier New',monospace !important;font-size: 16px !important;\"";
